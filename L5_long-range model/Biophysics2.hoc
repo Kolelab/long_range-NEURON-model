@@ -1,0 +1,1119 @@
+
+xopen ("L5_PoM_longrange_7_Ctx.hoc")
+
+access soma
+area(0.5)
+distance()
+
+proc geom_nseg() {
+		soma area(0.5) // make sure diam reflects 3d points
+		forall {nseg = int((L/(0.1*lambda_f(2000))+0.9)/2)*2+1}
+	}	
+
+// ----------------------------------------------------------------------------
+// General parameter settings and ion channel densities
+//-----------------------------------------------------------------------------
+
+proc parameters() {
+
+	celsius = 37 		// match to in vivo temperature
+	Ri = 180			// Ohm x cm, Cohen et al. 2020 			
+	Cm = 0.9 		   	// µF x cm-2	
+	Rm = 2300			// kOhm x cm2 
+	v_init = -85		// in vivo resting potential? 
+	spinescale = 1.4
+
+
+//following Cohen et al. 2020 implementing double-cable properties to myelinated axons
+
+	eext = 0 		// Intracellular voltage gradient defined by v_init = RMP (see openmodel), powering 
+					// the bioelectric cell. Average, with respect to extracellular space adjacent to 
+					// each recording site. Dependent upon uploaded voltge recording data. Units = mV.
+					// v_init is otherwise defined by NEURON.
+					// The extracellular battery, eext, is fixed.
+
+	Cext = 0 		// Specific surface capacitance of extracellular space, Cext (unit = ohm cm^2).
+					// Counterpart to Rext. Fixed.
+
+	rext = 1e-6 	// Extracellular space axial resistance (rext). Unit = Mega ohm / cm. Fixed.
+					// Based on Ri_low and the cross-sectional area of the extracellular bath space 
+					// (sphere 4 cm in diameter).
+	Rext = 1e-8
+
+	Rmy = 1.5408e+05 	// Mouse, 9 myelin lamellae)
+	Cmy = 5.556e-02  	// 2xrat myelin Cmy (3.7906e-02 with 14 lamellae, Cohen et al. 2020)
+	
+	rpa = 1.2494e+05 	// Likely a constant for rext and 12 nm spacing. 
+	parafact = 18.153   // for rat paranodes.
+
+	
+// specific local extracellular features to simulate local blebbing or swelling in the spheroids (_sp). 
+
+	rpa_sp = 1.2494e+05 	//standard control settings
+	Rmy_sp = 1.5408e+05
+	Cmy_sp = 5.556e-02 
+
+	sw_r = 7 	// swelling maximum diameter
+
+
+// Specific parameters for myelinated internodes in the neocortex (_Ctx) and Thalamyus (_Thal) allowing simulations 
+// for local demyelination. White matter is without label. 
+
+
+	Rmy_Ctx = 1.5408e+05 //standard control settings
+	Cmy_Ctx = 5.556e-02
+	rpa_Ctx = 1.2494e+05 	
+	parafact_Ctx = 18.153
+
+	Rmy_Thal = 1.5408e+05 //standard control settings
+	Cmy_Thal = 5.556e-02
+	rpa_Thal = 1.2494e+05 	
+	parafact_Thal = 18.153
+
+
+// peak conductance density values
+
+	na_soma			= 800				
+	na_dend			= 25 	
+	na_ais			= 30000	 // pS per um2
+	na_node			= 30000  // interestingly, comptuationallly predcicted to be as high as AIS
+	na_node_Ctx		= 30000 
+	na_node_Thal	= 30000
+	na_collat		= 500
+	na_intnode		= 25
+	na_intnode_Ctx	= 25
+	na_intnode_Thal = 25
+	na_paranode 	= 0
+	na_paranode_Ctx	= 0
+	na_paranode_Thal = 0
+	na_juxtapara 	= 0 
+	na_juxtapara_Ctx = 0
+	na_juxtapara_Thal = 0 
+
+	na_dem = 200	// general upregulation of sodium conductance after demyelination (dem)
+
+	nap_soma = 	0.1
+	
+	Kv1_soma		=	300
+	Kv1_dend		=	15			
+	Kv1_ais			=	12000
+	Kv1_prox		=	2000
+	Kv1_node		=	15 
+	Kv1_node_Ctx	=	15
+	Kv1_node_Thal	=	15  			
+	Kv1_collat		=	200
+	Kv1_intnode 	=	15
+	Kv1_intnode_Ctx	= 	15
+	Kv1_intnode_Thal= 	15
+	Kv1_paranode    =   15
+	Kv1_paranode_Ctx =  15
+	Kv1_paranode_Thal =  15
+	Kv1_juxtapara 	= 	8000 	// interestingly, comptuationallly predcicted to be as high as AIS
+	Kv1_juxtapara_Ctx = 8000
+	Kv1_juxtapara_Thal = 8000
+
+	Kv7_dend			=	10 
+	Kv7_soma			=	10 	
+	Kv7_collat			=	15 
+	Kv7_prox			=	15
+	Kv7_ais				=	150
+	Kv7_intnode			=	15
+	Kv7_intnode_Ctx		=	15
+	Kv7_intnode_Thal	=	15   
+	Kv7_node			=	150
+	Kv7_node_Ctx    	=   150
+	Kv7_node_Thal   	=   150
+	Kv7_paranode    	=	1.5
+	Kv7_paranode_Ctx 	= 	1.5
+	Kv7_paranode_Thal 	= 	1.5
+	Kv7_juxtapara   	=   15
+	Kv7_juxtapara_Ctx 	= 	15
+	Kv7_juxtapara_Thal 	= 	15
+	
+	Kv_soma	 		=	30	
+	Kv_dend	 		=	15				
+
+
+
+	gca_dend	=	1.5 
+	gca_soma	=	1.5 
+	gca_ais		=	1.5
+
+	git2_ais	=	1.5
+	git2_dend	=	1.5
+	git2_apic	=	1.5 
+	git2_soma	=	1.5
+
+	gkca_soma	=	1.0 
+	gkca_dend	=	1.0 
+	gkca_ais	=	1.0 
+
+	ih_axon		=	0.0001 // mho cm2
+
+
+//some shifts of voltage dependencies
+
+vShift_Kv1		=	10
+vShift_inact_Kv1=	-15
+speed_Kv1		=	1
+
+max_distance_apic	=	350		
+max_distance_basal	=	220	//corresponding distance for basal dendrites
+
+vShift_na			=	10 			
+vShift_inact_na		=	16 		
+q10_na				=	3
+q10h_na				=	3		
+
+vShift_nax			=	3 // was 4	
+vShift_inact_nax	=	4		
+q10_nax				=	3
+q10h_nax			=	3	
+
+vShift_nais			=	11 		
+vShift_inact_nais	=	10		
+q10_nais			=	3
+q10h_nais			=	3	
+
+
+//according to Keren et al., 2009, JPhysiol, 587:1413-37
+
+length_constant_Kv_and_Kv1	=	20	//length constant of the exponential decay in um of Kv and Kv1
+						
+
+gCa_HVA_apic_hot_fac=	2	//ca
+gCa_LVAst_apic_hot_fac=	2	//it2
+gCa_hot_start	=	400 	//250
+gCa_hot_end	= 450 		//280
+
+
+}
+
+// ----------------------------------------------------------------------------
+// Procedure block to demyelinate and remyelinate, in cortex and globally
+// demyelin+ = demyelination + node loss
+//-----------------------------------------------------------------------------
+
+
+proc AlldemyelinPlus() {     
+	Cmy 	= 0.9
+	Rmy 	= 1e-8
+	rpa 	= 1e-6
+	parafact = 1.0
+
+	rpa_sp = 1e-6	
+	Rmy_sp = 1e-8
+	Cmy_sp = 0.9
+
+	Cmy_Ctx = 0.9
+	Rmy_Ctx = 1e-8
+	rpa_Ctx = 1e-6
+	parafact_Ctx = 1.0
+
+	Cmy_Thal = 0.9
+	Rmy_Thal = 1e-8
+	rpa_Thal = 1e-6
+	parafact_Thal = 1.0
+
+	na_node  		= na_dem
+	na_paranode		= na_dem
+	na_juxtapara 	= na_dem
+	na_intnode		= na_dem 
+	
+	Kv1_node 		= Kv1_intnode
+	Kv1_paranode 	= Kv1_intnode
+	Kv1_juxtapara	= Kv1_intnode
+	Kv1_intnode		= Kv1_intnode
+
+	Kv7_node		= Kv7_intnode
+	Kv7_paranode 	= Kv7_intnode
+	Kv7_juxtapara 	= Kv7_intnode
+	Kv7_intnode 	= Kv7_intnode
+
+	na_node_Ctx  		= na_dem
+	na_paranode_Ctx		= na_dem
+	na_juxtapara_Ctx 	= na_dem
+	na_intnode_Ctx 		= na_dem
+
+	Kv1_node_Ctx 		= Kv1_intnode
+	Kv1_paranode_Ctx 	= Kv1_intnode
+	Kv1_juxtapara_Ctx	= Kv1_intnode
+	Kv1_intnode_Ctx		= Kv1_intnode
+
+	Kv7_node_Ctx 		= Kv7_intnode
+	Kv7_paranode_Ctx 	= Kv7_intnode
+	Kv7_juxtapara_Ctx 	= Kv7_intnode
+	Kv7_intnode_Ctx 	= Kv7_intnode
+	
+	na_node_Thal  		= na_dem
+	na_paranode_Thal	= na_dem
+	na_juxtapara_Thal 	= na_dem
+	na_intnode_Thal 	= na_dem
+
+	Kv1_node_Thal 		= Kv1_intnode
+	Kv1_paranode_Thal 	= Kv1_intnode
+	Kv1_juxtapara_Thal	= Kv1_intnode
+	Kv1_intnode_Thal	= Kv1_intnode
+
+	Kv7_node_Thal 		= Kv7_intnode
+	Kv7_paranode_Thal 	= Kv7_intnode
+	Kv7_juxtapara_Thal 	= Kv7_intnode
+	Kv7_intnode_Thal 	= Kv7_intnode
+}
+
+
+proc Alldemyelin() {     
+	Cmy 	= 0.9
+	Rmy 	= 1e-8
+	rpa 	= 1e-6
+	parafact = 1.0
+
+	rpa_sp = 1e-6	
+	Rmy_sp = 1e-8
+	Cmy_sp = 0.9
+
+	Cmy_Ctx = 0.9
+	Rmy_Ctx = 1e-8
+	rpa_Ctx = 1e-6
+	parafact_Ctx = 1.0
+
+	Cmy_Thal = 0.9
+	Rmy_Thal = 1e-8
+	rpa_Thal = 1e-6
+	parafact_Thal = 1.0
+
+	//na_node  		= na_dem
+	na_paranode		= na_dem
+	na_juxtapara 	= na_dem
+	na_intnode		= na_dem 
+	
+	//Kv1_node 		= Kv1_intnode
+	Kv1_paranode 	= Kv1_intnode
+	Kv1_juxtapara	= Kv1_intnode
+	Kv1_intnode		= Kv1_intnode
+
+	//Kv7_node		= Kv7_intnode
+	Kv7_paranode 	= Kv7_intnode
+	Kv7_juxtapara 	= Kv7_intnode
+	Kv7_intnode 	= Kv7_intnode
+
+	//na_node_Ctx  		= na_dem
+	na_paranode_Ctx		= na_dem
+	na_juxtapara_Ctx 	= na_dem
+	na_intnode_Ctx 		= na_dem
+
+	//Kv1_node_Ctx 		= Kv1_intnode
+	Kv1_paranode_Ctx 	= Kv1_intnode
+	Kv1_juxtapara_Ctx	= Kv1_intnode
+	Kv1_intnode_Ctx		= Kv1_intnode
+
+	//Kv7_node_Ctx 		= Kv7_intnode
+	Kv7_paranode_Ctx 	= Kv7_intnode
+	Kv7_juxtapara_Ctx 	= Kv7_intnode
+	Kv7_intnode_Ctx 	= Kv7_intnode
+	
+	//na_node_Thal  	= na_dem
+	na_paranode_Thal	= na_dem
+	na_juxtapara_Thal 	= na_dem
+	na_intnode_Thal 	= na_dem
+
+	//Kv1_node_Thal 		= Kv1_intnode
+	Kv1_paranode_Thal 	= Kv1_intnode
+	Kv1_juxtapara_Thal	= Kv1_intnode
+	Kv1_intnode_Thal	= Kv1_intnode
+
+	//Kv7_node_Thal 		= Kv7_intnode
+	Kv7_paranode_Thal 	= Kv7_intnode
+	Kv7_juxtapara_Thal 	= Kv7_intnode
+	Kv7_intnode_Thal 	= Kv7_intnode
+}
+
+
+proc Ctxdemyelin() {     //should reflect average of experimental observations
+	Cmy_Ctx = 0.9
+	Rmy_Ctx = 1e-8
+	rpa_Ctx = 1e-6
+	parafact_Ctx = 1.0
+
+	Cmy_sp = 0.9
+	Rmy_sp = 1e-8
+	rpa_sp = 1e-6	
+
+	//na_node_Ctx  		= na_dem
+	na_paranode_Ctx		= na_dem
+	na_juxtapara_Ctx 	= na_dem
+	na_intnode_Ctx 		= na_dem 
+
+	//Kv1_node_Ctx 		= Kv1_intnode
+	Kv1_paranode_Ctx 	= Kv1_intnode
+	Kv1_juxtapara_Ctx	= Kv1_intnode
+	Kv1_intnode_Ctx	    = Kv1_intnode
+
+	//Kv7_node		= Kv7_intnode
+	Kv7_paranode 	= Kv7_intnode
+	Kv7_juxtapara 	= Kv7_intnode
+	Kv7_intnode 	= Kv7_intnode
+}
+
+
+
+proc CtxdemyelinPlus() {     //should reflect average of experimental observations
+	Cmy_Ctx = 0.9
+	Rmy_Ctx = 1e-8
+	rpa_Ctx = 1e-6
+	parafact_Ctx = 1.0
+
+	Cmy_sp = 0.9
+	Rmy_sp = 1e-8
+	rpa_sp = 1e-6	
+
+	na_node_Ctx  		= na_dem
+	na_paranode_Ctx		= na_dem
+	na_juxtapara_Ctx 	= na_dem
+	na_intnode_Ctx 		= na_dem 
+
+	Kv1_node_Ctx 		= Kv1_intnode
+	Kv1_paranode_Ctx 	= Kv1_intnode
+	Kv1_juxtapara_Ctx	= Kv1_intnode
+	Kv1_intnode_Ctx	    = Kv1_intnode
+
+	Kv7_node		= Kv7_intnode
+	Kv7_paranode 	= Kv7_intnode
+	Kv7_juxtapara 	= Kv7_intnode
+	Kv7_intnode 	= Kv7_intnode
+}
+
+
+proc WMdemyelin() {     
+	Cmy 	= 0.9
+	Rmy 	= 1e-8
+	rpa 	= 1e-6
+	parafact = 1.0
+
+	//na_node  		= na_dem
+	na_paranode		= na_dem
+	na_juxtapara 	= na_dem
+	na_intnode		= na_dem 
+	
+	//Kv1_node 		= Kv1_intnode
+	Kv1_paranode 	= Kv1_intnode
+	Kv1_juxtapara	= Kv1_intnode
+	Kv1_intnode		= Kv1_intnode
+
+	//Kv7_node		= Kv7_intnode
+	Kv7_paranode 	= Kv7_intnode
+	Kv7_juxtapara 	= Kv7_intnode
+	Kv7_intnode 	= Kv7_intnode
+}
+
+
+proc WMdemyelinPlus() {     
+	Cmy 	= 0.9
+	Rmy 	= 1e-8
+	rpa 	= 1e-6
+	parafact = 1.0
+
+	na_node  		= na_dem
+	na_paranode		= na_dem
+	na_juxtapara 	= na_dem
+	na_intnode		= na_dem 
+	
+	Kv1_node 		= Kv1_intnode
+	Kv1_paranode 	= Kv1_intnode
+	Kv1_juxtapara	= Kv1_intnode
+	Kv1_intnode		= Kv1_intnode
+
+	Kv7_node		= Kv7_intnode
+	Kv7_paranode 	= Kv7_intnode
+	Kv7_juxtapara 	= Kv7_intnode
+	Kv7_intnode 	= Kv7_intnode
+}
+
+
+
+proc Thaldemyelin(){
+	Cmy_Thal = 0.9
+	Rmy_Thal = 1e-8
+	rpa_Thal = 1e-6
+	parafactThal = 1.0
+
+	//Kv1_node_Thal 	= Kv1_intnode
+	Kv1_paranode_Thal 	= Kv1_intnode
+	Kv1_juxtapara_Thal	= Kv1_intnode
+	Kv1_intnode_Thal	= Kv1_intnode
+	
+	//Kv7_node_Thal 		= Kv7_intnode
+	Kv7_paranode_Thal 	= Kv7_intnode
+	Kv7_juxtapara_Thal 	= Kv7_intnode
+	Kv7_intnode_Thal 	= Kv7_intnode
+	
+	//na_node_Thal  	= na_dem
+	na_paranode_Thal	= na_dem
+	na_juxtapara_Thal 	= na_dem
+	na_intnode_Thal 	= na_dem
+}
+
+
+proc ThaldemyelinPlus(){
+	Cmy_Thal = 0.9
+	Rmy_Thal = 1e-8
+	rpa_Thal = 1e-6
+	parafactThal = 1.0
+
+	na_node_Thal  	= na_dem
+	na_paranode_Thal	= na_dem
+	na_juxtapara_Thal 	= na_dem
+	na_intnode_Thal 	= na_dem
+
+	Kv1_node_Thal 	= Kv1_intnode
+	Kv1_paranode_Thal 	= Kv1_intnode
+	Kv1_juxtapara_Thal	= Kv1_intnode
+	Kv1_intnode_Thal	= Kv1_intnode
+	
+	Kv7_node_Thal 	= Kv7_intnode
+	Kv7_paranode_Thal 	= Kv7_intnode
+	Kv7_juxtapara_Thal 	= Kv7_intnode
+	Kv7_intnode_Thal 	= Kv7_intnode
+	
+}
+
+
+proc myelin(){
+	Cmy 	= 5.556e-02
+	Rmy 	= 1.5408e+05 
+	rpa 	= 1.2494e+05 
+	parafact = 18.153
+
+	rpa_sp = 1.2494e+05 	
+	Rmy_sp = 1.5408e+05 
+	Cmy_sp = 5.556e-02
+
+	Cmy_Ctx = 5.556e-02
+	Rmy_Ctx = 1.5408e+05 
+	rpa_Ctx = 1.2494e+05 
+	parafact_Ctx = 18.153
+
+	Cmy_Thal = 5.556e-02
+	Rmy_Thal = 1.5408e+05 
+	rpa_Thal = 1.2494e+05 
+	parafact_Thal = 18.153
+
+	na_node  		= 30000
+	na_paranode		= 0
+	na_juxtapara 	= 0
+	na_intnode		= 25
+	
+	Kv1_node 		= 15
+	Kv1_paranode 	= 15
+	Kv1_juxtapara	= 8000
+	Kv1_intnode		= 15
+
+	Kv7_node		= 150
+	Kv7_paranode 	= 1.5
+	Kv7_juxtapara 	= 15
+	Kv7_intnode 	= 15
+
+	na_node_Ctx  		= 30000
+	na_paranode_Ctx		= 0
+	na_juxtapara_Ctx 	= 0
+	na_intnode_Ctx 		= 25
+
+	Kv1_node_Ctx 		= 15
+	Kv1_paranode_Ctx 	= 15
+	Kv1_juxtapara_Ctx	= 8000
+	Kv1_intnode_Ctx		= 15
+	
+	Kv7_node_Ctx 		= 150
+	Kv7_paranode_Ctx 	= 1.5
+	Kv7_juxtapara_Ctx 	= 15
+	Kv7_intnode_Ctx 	= 15
+
+	na_node_Thal  		= 30000
+	na_paranode_Thal	= 0
+	na_juxtapara_Thal 	= 0
+	na_intnode_Thal 	= 25
+
+	Kv1_node_Thal 		= 15
+	Kv1_paranode_Thal 	= 15
+	Kv1_juxtapara_Thal	= 8000
+	Kv1_intnode_Thal	= 15
+
+	Kv7_node_Thal 		= 150
+	Kv7_paranode_Thal 	= 1.5
+	Kv7_juxtapara_Thal 	= 15
+	Kv7_intnode_Thal 	= 15
+}
+
+
+proc swelling() {			// axonal swelling only
+		forsec spheroid {
+		nseg = 21
+		diam(0:0.5) = 1.5:sw_r
+		diam(0.5:1.0) = sw_r:1.5
+		}
+}	
+	
+	
+
+proc blebbing() { 			// axonal swelling with loosely wrapped leaky myelin (1 sheath)
+	forsec spheroid {
+		nseg = 21
+		diam(0:0.5) = 1.5:sw_r
+		diam(0.5:1.0) = sw_r:1.5
+		rpa_sp = rext
+		Rmy_sp = Rm
+		Cmy_sp = Cm
+		}
+}	
+
+
+
+
+// ----------------------------------------------------------------------------
+// Initialisation of passive and active properties, spine scaling, Rm and Cm
+//-----------------------------------------------------------------------------
+
+
+proc init_channels() {
+	
+	forall 	{
+			insert pas 	 
+				Ra = Ri 
+				e_pas = v_init
+				g_pas = 1/Rm
+				cm = Cm
+
+			insert extracellular
+    			xraxial[0] = rext
+    			xg[0] = 1/Rext
+    			xc[0] = Cext
+    			e_extracellular = eext 
+		}
+
+
+	
+	forsec somatic  {
+			nseg=15
+			e_pas=v_init
+			insert na 	gbar_na = na_soma
+			insert nap	gbar_nap = nap_soma	
+			insert Kv 	gbar_Kv = Kv_soma
+			insert ca 	gbar_ca = gca_soma
+			insert kca 	gbar_kca = gkca_soma
+			insert cad
+			insert it2	gcabar_it2 = git2_dend
+			insert Kv7 	gbar_Kv7 = Kv7_soma
+			insert Kv1 	gbar_Kv1 = Kv1_soma
+	} 		
+	
+
+	forsec basal {
+		 {		
+			g_pas=1/(Rm/spinescale)
+			cm=Cm*spinescale 
+			insert na 	gbar_na = na_dend*spinescale
+			insert nap	gbar_nap = nap_soma		
+			insert Kv 	gbar_Kv = Kv_dend*spinescale 		
+			insert Kv7 	gbar_Kv7 = Kv7_dend*spinescale
+			insert kca 	gbar_kca = gkca_dend*spinescale
+			insert cad 
+			insert ca 	gbar_ca = gca_dend*spinescale
+			insert it2 	gcabar_it2 = git2_dend*spinescale
+			insert Kv1	gbar_Kv1 = Kv1_dend*spinescale
+		}			 
+	}
+	
+
+	forsec apical {
+		 {
+			g_pas=1/(Rm/spinescale)
+			cm=Cm*spinescale
+			insert na 	gbar_na = na_dend*spinescale
+			insert nap	gbar_nap = nap_soma			
+			insert Kv 	gbar_Kv = Kv_dend*spinescale 		
+			insert Kv7 	gbar_Kv7 = Kv7_soma*spinescale
+			insert kca 	gbar_kca = gkca_dend*spinescale
+			insert cad 
+			insert ca 	gbar_ca = gca_dend*spinescale
+			insert it2 	gcabar_it2 = git2_apic*spinescale
+			insert Kv1	gbar_Kv1 = Kv1_dend*spinescale	
+		}			 
+	}
+
+
+	forsec AIS  {
+			nseg = 21
+			e_pas=v_init
+			g_pas=1/Rm
+			cm=Cm
+
+			insert extracellular {
+    		// all extrac initialized as no myelin    			
+    			xraxial[0] = rext
+    			xg[0] = 1/Rext
+    			xc[0] = Cext
+	    		e_extracellular = eext
+  			}
+
+			insert nais gbar_nais 		= na_ais
+			insert Kv1 	gbar_Kv1(0:1)	= Kv1_prox:Kv1_ais
+			insert Kv7 	gbar_Kv7(0:0.4) = Kv7_prox:Kv7_prox
+						gbar_Kv7(0.4:1) = Kv7_prox:Kv7_ais
+			insert cad 
+			insert ca 	gbar_ca = gca_ais
+			insert it2 	gcabar_it2 = git2_ais
+			insert kca	gbar_kca = gkca_ais
+			
+	}
+
+	
+	forsec collateral {	
+			e_pas=v_init
+			g_pas=1/Rm
+			cm=Cm
+
+			insert extracellular {
+    			xraxial[0] = rext
+    			xg[0] = 1/Rext
+    			xc[0] = Cext
+	    		e_extracellular = eext
+  			}
+
+			insert Kv7 gbar_Kv7 = Kv7_collat
+			insert nax gbar_nax = na_collat
+			insert Kv1 gbar_Kv1 = Kv1_collat
+		}	
+
+
+	forsec internodal {
+				g_pas=1/Rm
+				cm=Cm
+				e_pas=v_init	
+					
+				insert extracellular { 
+				xraxial[0] = rpa
+				xg[0] = 1/Rmy
+				xc[0] = Cmy
+				}
+		
+				insert nax gbar_nax  = na_intnode
+				insert Kv7 gbar_Kv7 = Kv7_intnode
+				insert Kv1 gbar_Kv1 = Kv1_intnode	
+		}	
+
+
+	forsec internodalCtx {
+				g_pas=1/Rm
+				cm=Cm
+				e_pas=v_init	
+					
+				insert extracellular { 
+				xraxial[0] = rpa_Ctx
+				xg[0] = 1/Rmy_Ctx
+				xc[0] = Cmy_Ctx
+				}
+				
+				insert nax gbar_nax  = na_intnode_Ctx
+				insert Kv7 gbar_Kv7 = Kv7_intnode_Ctx
+				insert Kv1 gbar_Kv1 = Kv1_intnode_Ctx
+		}	
+
+	forsec internodalThal {
+				g_pas=1/Rm
+				cm=Cm
+				e_pas=v_init	
+					
+				insert extracellular { 
+				xraxial[0] = rpa_Thal
+				xg[0] = 1/Rmy_Thal
+				xc[0] = Cmy_Thal
+				}
+				
+				insert nax gbar_nax  = na_intnode_Thal
+				insert Kv7 gbar_Kv7 = Kv7_intnode_Thal
+				insert Kv1 gbar_Kv1 = Kv1_intnode_Thal
+		}	
+
+
+
+	forsec paranodal {
+				g_pas=1/Rm
+				cm=Cm
+				e_pas=v_init
+
+				insert extracellular { 			
+				xraxial[0] = rpa
+				xg[0] = 1/Rmy
+				xc[0] = Cmy
+				xraxial[0] *= parafact
+				}
+
+				insert nax gbar_nax  = na_paranode
+				insert Kv7 gbar_Kv7 = Kv7_paranode
+				insert Kv1 gbar_K1 = Kv1_paranode	
+		}	
+
+
+	forsec paranodalCtx {
+				g_pas=1/Rm
+				cm=Cm
+				e_pas=v_init
+
+				insert extracellular {			
+				xraxial[0] = rpa_Ctx
+				xg[0] = 1/Rmy_Ctx
+				xc[0] = Cmy_Ctx
+				xraxial[0] *= parafact_Ctx
+				} 
+
+				insert nax gbar_nax  = na_paranode_Ctx
+				insert Kv7 gbar_Kv7 = Kv7_paranode_Ctx
+				insert Kv1 gbar_K1 = Kv1_paranode_Ctx				
+		}	
+
+
+	forsec paranodalThal {
+				g_pas=1/Rm
+				cm=Cm
+				e_pas=v_init
+
+				insert extracellular {			
+				xraxial[0] = rpa_Thal
+				xg[0] = 1/Rmy_Thal
+				xc[0] = Cmy_Thal
+				xraxial[0] *= parafact_Thal
+				} 
+
+				insert nax gbar_nax  = na_paranode_Thal
+				insert Kv7 gbar_Kv7 = Kv7_paranode_Thal
+				insert Kv1 gbar_K1 = Kv1_paranode_Thal				
+		}	
+
+
+
+	forsec nodal {			
+			nseg = 5
+			g_pas=1/Rm
+			e_pas=v_init
+			cm=Cm
+
+			insert extracellular {
+    		// all sections initialized to no myelin
+    			xraxial[0] = rext
+    			xg[0] = 1/Rext
+    			xc[0] = Cext
+    			e_extracellular = eext // eext should remain fixed at 0
+	  			}
+				insert nax gbar_nax = na_node
+				insert Kv1 gbar_Kv1 = Kv1_node
+				insert Kv7 gbar_Kv7 = Kv7_node
+		}	
+
+
+	forsec nodalCtx {			
+			nseg = 5
+			g_pas=1/Rm
+			e_pas=v_init
+			cm=Cm
+
+			insert extracellular {
+    		// all sections initialized to no myelin
+    			xraxial[0] = rext
+    			xg[0] = 1/Rext
+    			xc[0] = Cext
+    			e_extracellular = eext // eext should remain fixed at 0
+	  			}
+
+				insert nax gbar_nax = na_node_Ctx
+				insert Kv1 gbar_Kv1 = Kv1_node_Ctx
+				insert Kv7 gbar_Kv7 = Kv7_node_Ctx
+		}	
+
+
+	forsec nodalThal {			
+			nseg = 5
+			g_pas=1/Rm
+			e_pas=v_init
+			cm=Cm
+
+			insert extracellular {
+    		// all sections initialized to no myelin
+    			xraxial[0] = rext
+    			xg[0] = 1/Rext
+    			xc[0] = Cext
+    			e_extracellular = eext // eext should remain fixed at 0
+	  			}
+
+				insert nax gbar_nax = na_node_Thal
+				insert Kv1 gbar_Kv1 = Kv1_node_Thal
+				insert Kv7 gbar_Kv7 = Kv7_node_Thal
+		}	
+
+
+	forsec juxtaparanodal {
+				g_pas=1/Rm
+				cm=Cm
+				e_pas=v_init
+				
+				insert extracellular {
+				xraxial[0] = rpa
+				xg[0] = 1/Rmy
+				xc[0] = Cmy
+				}
+				insert Kv1 gbar_Kv1 = Kv1_juxtapara
+				insert nax gbar_nax = na_juxtapara
+				insert Kv7 gbar_Kv7 = Kv7_juxtapara
+		}
+
+
+
+	forsec juxtaparanodalCtx {
+				g_pas=1/Rm
+				cm=Cm
+				e_pas=v_init
+				
+				insert extracellular {
+				xraxial[0] = rpa_Ctx
+				xg[0] = 1/Rmy_Ctx
+				xc[0] = Cmy_Ctx
+				}
+				insert Kv1 gbar_Kv1 = Kv1_juxtapara_Ctx
+				insert nax gbar_nax = na_juxtapara_Ctx
+				insert Kv7 gbar_Kv7 = Kv7_juxtapara_Ctx
+		}
+
+
+	forsec juxtaparanodalThal {
+				g_pas=1/Rm
+				cm=Cm
+				e_pas=v_init
+				
+				insert extracellular {
+				xraxial[0] = rpa_Thal
+				xg[0] = 1/Rmy_Thal
+				xc[0] = Cmy_Thal
+				}
+				insert Kv1 gbar_Kv1 = Kv1_juxtapara_Thal
+				insert nax gbar_nax = na_juxtapara_Thal
+				insert Kv7 gbar_Kv7 = Kv7_juxtapara_Thal
+		}
+
+
+
+	forsec spheroid {
+			nseg = 21
+			g_pas=1/Rm
+			cm=Cm
+			e_pas=v_init	
+
+			insert extracellular {
+			xraxial[0] = rpa_sp
+			xg[0] = 1/Rmy_sp
+			xc[0] = Cmy_sp
+			}
+			insert nax gbar_nax  = na_intnode
+			insert Kv7 gbar_Kv7 = Kv7_intnode
+			insert Kv1 gbar_Kv1 = Kv1_intnode
+		}	
+
+
+
+
+// ---------------------------------------------------------------------
+// Local calcium enhancement in dendritic zone (Larkum et al,1999)
+// ----------------------------------------------------------------------
+
+forall { 	
+		vh1_it2    = 56
+		vh2_it2    = 415
+		ah_it2     = 30				
+		v12m_it2   = 45
+		v12h_it2   = 65  
+		am_it2     = 3
+		vshift_it2 = 10
+		vm1_it2    = 50
+		vm2_it2    = 125
+	}
+
+forall if(ismembrane("ca_ion")) {
+		eca = 140
+		ion_style("ca_ion",0,1,0,0,0)
+		vshift_ca = 8
+	} 
+
+forall 	{
+		caix_kca  = 0.7  	// Ca-sensitivity of Kca channel
+		Ra_kca    = 1  	// Activation rate Kca 
+		Rb_kca    = 2.5	// inactivation rate Kca, important ! 
+		taur_cad = 80    	// Calcium extrusion rate, in ms 
+	}
+
+
+//possibility to implement hot-zone
+	access soma
+	area(0.5)
+	distance()
+	
+
+//apical dendrites
+	forsec apical  {
+		 {
+			for j=1,nseg {
+				pos=0.5/nseg+(j-1)/nseg
+				if(distance(pos) > gCa_hot_start && distance(pos) < gCa_hot_end) {
+					gbar_ca(pos)	=	gca_dend*gCa_HVA_apic_hot_fac*spinescale
+					gcabar_it2(pos)	=	git2_apic*gCa_LVAst_apic_hot_fac*spinescale
+				}
+			}
+		}
+	}
+
+
+
+// --------------------------------------------------------------------------
+// Dendritic exponential distribution of Ih in dendrites (Kole et al., 2006)
+// --------------------------------------------------------------------------
+			 
+	
+forall {
+		A =  0.0004 
+		tau = 0.003
+		insert ih
+		gh_ih=0 	//offset conductance  
+				 
+	} 
+		
+	access soma
+	area(0.5)
+	distance()
+
+	forsec basal {
+		 {
+			for j=1,nseg {
+				pos=0.5/nseg+(j-1)/nseg
+				gbar_ih(pos)=(gh_ih+(A*(exp(tau*distance(pos)))))*spinescale	
+			}
+		}
+	}
+
+	forsec apical {
+		 {
+			for j=1,nseg {
+				pos=0.5/nseg+(j-1)/nseg
+				gbar_ih(pos)=(gh_ih+(A*(exp(tau*distance(pos)))))*spinescale	
+			}
+		}
+	}
+
+	soma {gbar_ih = 0.0001}
+	
+	forsec axonal  {
+
+		{gbar_ih=ih_axon
+			}
+	}
+
+	forsec collateral {	
+			
+			 {gbar_ih=0.0001
+	
+		}
+	}	
+
+
+// --------------------------------------------------------------------------
+// Dendritic linear distribution of na (Keren et al., 2009, JPhysiol, 587:1413-37)
+// --------------------------------------------------------------------------
+
+	access soma
+	area(0.5)
+	distance()
+		
+	forsec basal  {
+		{
+			for j=1,nseg {
+				pos=0.5/nseg+(j-1)/nseg
+				if (distance(pos) >= max_distance_basal)  {
+					gbar_na(pos)=na_dend*spinescale	
+				} else {
+					gbar_na(pos)=(na_dend+(na_soma-na_dend)*(1-(distance(pos)/max_distance_basal)))*spinescale	
+				}
+			}
+		}
+	}
+
+	forsec apical  {
+		 {
+			for j=1,nseg {
+				pos=0.5/nseg+(j-1)/nseg
+				if (distance(pos) >= max_distance_apic)  {
+					gbar_na(pos)=na_dend*spinescale	
+				} else {
+					gbar_na(pos)=(na_dend+(na_soma-na_dend)*(1-(distance(pos)/max_distance_apic)))*spinescale	
+				}
+			}
+		}
+	}
+
+
+//except for apical obliques
+
+//	for i=60,73 {
+//		apic[i] {
+//			for j=1,nseg {
+//				pos=0.5/nseg+(j-1)/nseg
+//				if (distance(pos) >= max_distance_basal)  {
+//					gbar_na(pos)=na_dend*spinescale	
+//				} else {
+//					gbar_na(pos)=(na_dend+(na_soma-na_dend)*(1-(distance(pos)/max_distance_basal)))*spinescale	
+//				}
+//			}
+//		}
+//	}
+
+
+// -----------------------------------------------------------------------------------------
+// Dendritic linear distribution of Kv and Kv1 (Keren et al., 2009, JPhysiol, 587:1413-37)
+// -----------------------------------------------------------------------------------------
+
+	access soma
+	area(0.5)
+	distance()
+		
+//basal dendrites
+	forsec basal  {
+		{
+			for j=1,nseg {
+				pos=0.5/nseg+(j-1)/nseg
+				gbar_Kv(pos)=(Kv_dend+(Kv_soma-Kv_dend)*exp(-distance(pos)/length_constant_Kv_and_Kv1))*spinescale	
+				gbar_Kv1(pos)=(Kv1_dend+(Kv1_soma-Kv1_dend)*exp(-distance(pos)/length_constant_Kv_and_Kv1))*spinescale	
+			}
+		}
+	}
+
+//apical dendrites
+	forsec apical  {
+		{
+			for j=1,nseg {
+				pos=0.5/nseg+(j-1)/nseg
+				gbar_Kv(pos)=(Kv_dend+(Kv_soma-Kv_dend)*exp(-distance(pos)/length_constant_Kv_and_Kv1))*spinescale	
+				gbar_Kv1(pos)=(Kv1_dend+(Kv1_soma-Kv1_dend)*exp(-distance(pos)/length_constant_Kv_and_Kv1))*spinescale	
+			}
+		}
+	}
+
+
+// global reversal values 
+	
+	eh_ih 	=	-45
+	ena		=	55
+	ek		= 	-85
+
+}		//here closes init_channels procedure. 
+
+
+
+
+
+
+
