@@ -1,4 +1,4 @@
-Unzip "L5_long-range model_review" file. 
+Unzip "L5_long-range model" file. 
 
 The NEURON model reproduces Fig. 6d of the manuscript "Layer 5 myelination gates corticothalamic coincidence detection" by Jamann et al.
 
